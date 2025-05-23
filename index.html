@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="af">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skool Eksamen Oefening</title>
+  <style>
+    /* Reset & base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    body {
+      padding: 1rem;
+    }
+    .container {
+      background: white;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      max-width: 480px;
+      width: 100%;
+    }
+    h1, h2 {
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .step {
+      margin-bottom: 1rem;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+    button {
+      flex: 1 1 40%;
+      max-width: 140px;
+      padding: 0.7rem 1rem;
+      background-color: #4f46e5; /* Indigo 600 */
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: none;
+      text-shadow: none;
+    }
+    button:hover {
+      background-color: #4338ca; /* Indigo 700 */
+    }
+    .hidden {
+      display: none;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+      color: #444;
+    }
+    .papers li {
+      margin-bottom: 0.7rem;
+    }
+    .papers a {
+      color: #4f46e5;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .papers a:hover {
+      text-decoration: underline;
+    }
+    /* Back button style */
+    .back-btn {
+      background-color: #e0e7ff; /* Indigo 100 */
+      color: #4f46e5; /* Indigo 600 */
+      padding: 0.4rem 0.9rem;
+      max-width: 90px;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    .back-btn:hover {
+      background-color: #c7d2fe; /* Indigo 200 */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Eksamen Oefenportaal</h1>
+    <div class="steps">
+      <div id="step-grade" class="step">
+        <h2>1. Kies Graad</h2>
+        <div class="buttons" id="grades"></div>
+      </div>
+      <div id="step-subject" class="step hidden">
+        <button class="back-btn" onclick="goBackTo('step-grade')">← Terug</button>
+        <h2>2. Kies Vak</h2>
+        <div class="buttons" id="subjects"></div>
+      </div>
+      <div id="step-province" class="step hidden">
+        <button class="back-btn" onclick="goBackTo('step-subject')">← Terug</button>
+        <h2>3. Kies Provinsie</h2>
+        <div class="buttons" id="provinces"></div>
+      </div>
+      <div id="step-papers" class="step hidden">
+        <button class="back-btn" onclick="goBackTo('step-province')">← Terug</button>
+        <h2>4. Kies Eksamen</h2>
+        <ul class="papers" id="papers"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample data (adjust file URLs accordingly)
+    const data = {
+      8: { Wiskunde: {}, Engels: {}, Natuurwetenskap: {} },
+      9: { Wiskunde: {}, Engels: {}, Geskiedenis: {} },
+      10: { Wiskunde: {}, Geografie: {}, Afrikaans: {} },
+      11: { Wiskunde: {}, Fisika: {}, Engels: {} },
+      12: { Wiskunde: {}, Lewenswetenskappe: {}, Engels: {} }
+    };
+    const provinces = ['Gauteng', 'KwaZulu-Natal', 'Wes-Kaap', 'Oos-Kaap', 'Vrystaat', 'Limpopo', 'Mpumalanga', 'Noord-Wes', 'Noord-Kaap'];
+
+    const gradesDiv = document.getElementById('grades');
+    const subjectsDiv = document.getElementById('subjects');
+    const provincesDiv = document.getElementById('provinces');
+    const papersList = document.getElementById('papers');
+    let selected = {};
+
+    // Grade knoppies vul
+    Object.keys(data).forEach(g => {
+      const btn = document.createElement('button');
+      btn.textContent = 'Graad ' + g;
+      btn.onclick = () => selectGrade(g);
+      gradesDiv.appendChild(btn);
+    });
+
+    function selectGrade(g) {
+      selected.grade = g;
+      showStep('step-subject');
+      subjectsDiv.innerHTML = '';
+      Object.keys(data[g]).forEach(sub => {
+        const btn = document.createElement('button');
+        btn.textContent = sub;
+        btn.onclick = () => selectSubject(sub);
+        subjectsDiv.appendChild(btn);
+      });
+    }
+
+    function selectSubject(sub) {
+      selected.subject = sub;
+      showStep('step-province');
+      provincesDiv.innerHTML = '';
+      provinces.forEach(p => {
+        const btn = document.createElement('button');
+        btn.textContent = p;
+        btn.onclick = () => selectProvince(p);
+        provincesDiv.appendChild(btn);
+      });
+    }
+
+    function selectProvince(prov) {
+      selected.province = prov;
+      showStep('step-papers');
+      const list = data[selected.grade][selected.subject][prov] || [];
+      papersList.innerHTML = '';
+      if (list.length === 0) {
+        papersList.innerHTML = '<li>Geen eksamenvraestelle beskikbaar nie.</li>';
+      } else {
+        list.forEach(p => {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${p.title}</strong>: <a href="${p.testUrl}" target="_blank">Vraestel</a> | <a href="${p.memoUrl}" target="_blank">Memo</a>`;
+          papersList.appendChild(li);
+        });
+      }
+    }
+
+    function showStep(id) {
+      document.querySelectorAll('.step').forEach(s => s.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function goBackTo(stepId) {
+      showStep(stepId);
+    }
+  </script>
+</body>
+</html>
+
