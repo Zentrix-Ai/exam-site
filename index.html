@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="af">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skool Eksamen Oefening</title>
+  <style>
+    /* RESET */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+    /* PARTICLE BACKGROUND */
+    #bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+    /* CONTAINER */
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 90%;
+      max-width: 600px;
+      margin: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.7);
+      text-align: center;
+    }
+    h1,
+    h2 {
+      margin-bottom: 1rem;
+      font-weight: 600;
+      color: #58a6ff;
+      text-shadow: 0 0 8px #58a6ff44;
+    }
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .buttons {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+    button {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      z-index: 20;
+    }
+    button:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+    .back-btn {
+      background: #e5e7eb;
+      color: #3b82f6;
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .back-btn:hover {
+      background: #d1d5db;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="container" role="main">
+    <h1>Eksamen Oefenportaal</h1>
+    <div class="steps">
+      <div id="step-grade" class="step">
+        <h2>1. Kies Graad</h2>
+        <div class="buttons" id="grades"></div>
+      </div>
+      <div id="step-subject" class="step hidden">
+        <button class="back-btn" onclick="showStep('step-grade')">← Terug</button>
+        <h2>2. Kies Vak</h2>
+        <div class="buttons" id="subjects"></div>
+      </div>
+      <div id="step-year" class="step hidden">
+        <button class="back-btn" onclick="showStep('step-subject')">← Terug</button>
+        <h2>3. Kies Jaar</h2>
+        <div class="buttons" id="years"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Particle background code (unchanged)
+    const canvas = document.getElementById('bg'),
+      ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+
+    function resize() {
+      w = canvas.width = innerWidth;
+      h = canvas.height = innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.vx = (Math.random() - 0.5) * 1.2;
+        this.vy = (Math.random() - 0.5) * 1.2;
+        this.sz = 1 + Math.random() * 2;
+        this.a = 0.05 + Math.random() * 0.3;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(200,200,255,${this.a})`;
+        ctx.arc(this.x, this.y, this.sz, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    for (let i = 0; i < 200; i++) particles.push(new Particle());
+
+    function connect() {
+      particles.forEach((a, i) => {
+        for (let j = i + 1; j < particles.length; j++) {
+          let b = particles[j],
+            dx = a.x - b.x,
+            dy = a.y - b.y,
+            dist = Math.hypot(dx, dy);
+          if (dist < 120) {
+            ctx.strokeStyle = `rgba(200,200,255,${(1 - dist / 120) * 0.2})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      });
+    }
+
+    function animateBg() {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+      connect();
+      requestAnimationFrame(animateBg);
+    }
+    animateBg();
+
+    // Data
+    const data = {
+      8: ['Afrikaans', 'Engels', 'Wiskunde', 'Wetenskap', 'LO', 'IT', 'Alpha Wiskunde'],
+      9: ['Afrikaans', 'Engels', 'Wiskunde', 'Wetenskap', 'LO', 'IT', 'Alpha Wiskunde'],
+      10: ['Afrikaans', 'Engels', 'Wiskunde', 'Wetenskap', 'LO', 'IT', 'Alpha Wiskunde'],
+      11: ['Afrikaans', 'Engels', 'Wiskunde', 'Wetenskap', 'LO', 'IT', 'Alpha Wiskunde'],
+      12: ['Afrikaans', 'Engels', 'Wiskunde', 'Wetenskap', 'LO', 'IT', 'Alpha Wiskunde'],
+    };
+
+    // Years from 2024 down to 2015
+    const years = ['2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015'];
+
+    // Links object — fill your Google Drive URLs here for each grade → subject → year
+    const links = {
+      8: {
+        Afrikaans: {
+          '2024': 'https://drive.google.com/link-grade8-afrikaans-2024',
+          '2023': 'https://drive.google.com/link-grade8-afrikaans-2023',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Engels: {
+          '2024': 'https://drive.google.com/link-grade8-engels-2024',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wiskunde: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wetenskap: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        LO: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        IT: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        'Alpha Wiskunde': {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+      },
+      9: {
+        Afrikaans: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Engels: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wiskunde: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wetenskap: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        LO: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        IT: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        'Alpha Wiskunde': {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+      },
+      10: {
+        Afrikaans: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Engels: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wiskunde: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wetenskap: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        LO: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        IT: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        'Alpha Wiskunde': {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+      },
+      11: {
+        Afrikaans: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Engels: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wiskunde: {
+          '2024': 'https://drive.google.com/drive/folders/1hhfYdNYb_ScH6zH2mtSgYDy1_tpNo0kN?usp=drive_link',
+          '2023': 'https://drive.google.com/drive/folders/1ibQZPrvvg0gz3IjtpkpRFUGU8hg-QhV9?usp=drive_link',
+          '2022': 'https://drive.google.com/drive/folders/1Iv3_HsBQ5Ge_N4wWK5EpjHdiCyarqS1K?usp=drive_link',
+          '2021': 'https://drive.google.com/drive/folders/1aPSo5blu9mX8a1VUuqlVRHZv5QBFVpgu?usp=drive_link',
+          '2020': 'https://drive.google.com/drive/folders/1_tVVAj2k4WwlzynHpgVb0yxgIYEcJzj_?usp=drive_link',
+          '2019': 'https://drive.google.com/drive/folders/1JRBFzQ1hAWjrkajlAOmOn_n_FpEUc2TD?usp=drive_link',
+          '2018': 'https://drive.google.com/drive/folders/1xVqXR5F8Q-LvDgzUSEkwotcpgH8Bvslf?usp=drive_link',
+          '2017': 'https://drive.google.com/drive/folders/1rYgAnzVI-CJRjTrl95YEyr4eId3Up4xT?usp=drive_link',
+          '2016': 'https://drive.google.com/drive/folders/1ldsArH-b7c-zNJeZTD4BdSf-eqR9tX71?usp=drive_link',
+          '2015': '',
+        },
+        Wetenskap: {
+          '2024': 'https://drive.google.com/drive/folders/1mNVu6JrcBhYXxxjCfUMOaS5V-fMMaJRW?usp=drive_link',
+          '2023': 'https://drive.google.com/drive/folders/1ACiJVQDxpIlsMHw3WNLKZPzmSgg0ArHE?usp=drive_link',
+          '2022': 'https://drive.google.com/drive/folders/1wgCk_dXApMjBttpj_b-rRpDqSJnWPTgn?usp=drive_link',
+          '2021': 'https://drive.google.com/drive/folders/1xrFlWu5R8mBqzMms2k_gYsv-u4BPgmCP?usp=drive_link',
+          '2020': 'https://drive.google.com/drive/folders/1ZMdp7WPy2x2rSuPQcw8X-WmazginwDTp?usp=drive_link',
+          '2019': 'https://drive.google.com/drive/folders/1UwxIVVaqpy_41EfEngp-5ffkI9VlVAd7?usp=drive_link',
+          '2018': 'https://drive.google.com/drive/folders/1uXWLIu2NnOsn6QuELv9HkI-ez6VII-xa?usp=drive_link',
+          '2017': 'https://drive.google.com/drive/folders/1r9tmcuX9QTZCgiwkQkq1Cz-RoDe0j7yw?usp=drive_link',
+          '2016': 'https://drive.google.com/drive/folders/1XJFR3a-YqQ7bqt2sHZdvTThVfEdb2Avt?usp=drive_link',
+          '2015': 'https://drive.google.com/drive/folders/1Z-H4OrGFtr6lPCDI4Uw5v5r-b6BFlQ3S?usp=drive_link',
+        },
+        LO: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        IT: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        'Alpha Wiskunde': {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+      },
+      12: {
+        Afrikaans: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Engels: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wiskunde: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        Wetenskap: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        LO: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        IT: {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+        'Alpha Wiskunde': {
+          '2024': '',
+          '2023': '',
+          '2022': '',
+          '2021': '',
+          '2020': '',
+          '2019': '',
+          '2018': '',
+          '2017': '',
+          '2016': '',
+          '2015': '',
+        },
+      },
+    };
+
+    // Current selections
+    let selectedGrade = null;
+    let selectedSubject = null;
+
+    // DOM elements
+    const gradesDiv = document.getElementById('grades');
+    const subjectsDiv = document.getElementById('subjects');
+    const yearsDiv = document.getElementById('years');
+
+    // Show step helper
+    function showStep(stepId) {
+      document.querySelectorAll('.step').forEach((step) => {
+        step.classList.add('hidden');
+      });
+      document.getElementById(stepId).classList.remove('hidden');
+    }
+
+    // Populate grades
+    function populateGrades() {
+      gradesDiv.innerHTML = '';
+      Object.keys(data).forEach((grade) => {
+        const btn = document.createElement('button');
+        btn.textContent = `Graad ${grade}`;
+        btn.onclick = () => {
+          selectedGrade = grade;
+          populateSubjects(grade);
+          showStep('step-subject');
+        };
+        gradesDiv.appendChild(btn);
+      });
+    }
+
+    // Populate subjects for selected grade
+    function populateSubjects(grade) {
+      subjectsDiv.innerHTML = '';
+      data[grade].forEach((subject) => {
+        const btn = document.createElement('button');
+        btn.textContent = subject;
+        btn.onclick = () => {
+          selectedSubject = subject;
+          populateYears(grade, subject);
+          showStep('step-year');
+        };
+        subjectsDiv.appendChild(btn);
+      });
+    }
+
+    // Populate years for selected grade and subject
+    function populateYears(grade, subject) {
+      yearsDiv.innerHTML = '';
+      years.forEach((year) => {
+        const btn = document.createElement('button');
+        btn.textContent = year;
+        btn.onclick = () => {
+          const link = links[grade]?.[subject]?.[year];
+          if (link && link.trim() !== '') {
+            window.open(link, '_blank');
+          } else {
+            alert('Geen skakel beskikbaar vir hierdie jaar.');
+          }
+        };
+        yearsDiv.appendChild(btn);
+      });
+    }
+
+    // Initialize
+    populateGrades();
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
